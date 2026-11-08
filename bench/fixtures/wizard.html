@@ -1,0 +1,9 @@
+<!doctype html><html><head><meta charset="utf-8"><style>body{font:15px sans-serif;max-width:640px;margin:24px auto}label{display:block;margin:12px 0 4px}input,select,textarea{width:100%;padding:6px;font:inherit}button{margin-top:16px;padding:8px 14px;font:inherit}</style></head><body><h1>Application</h1><p id="prog">Step 1 of 4</p><form action="/submit" method="post" onsubmit="">
+<section data-s="1"><label for="fn">First name *</label><input id="fn" required><label for="ln">Last name *</label><input id="ln" required></section>
+<section data-s="2" hidden><label for="em">Email *</label><input id="em" type="email" required><label for="ph">Phone *</label><input id="ph" required></section>
+<section data-s="3" hidden><label for="hear">How did you hear about us? *</label><select id="hear" required><option value="">Choose</option><option>Company website</option><option>Referral</option></select><label for="no">Notice period *</label><input id="no" required></section>
+<section data-s="4" hidden><p>Review your answers.</p><label for="why">Why do you want to work here?</label><textarea id="why"></textarea></section>
+<button type="button" id="nx">Next</button><button type="submit" id="sb" hidden>Submit application</button></form>
+<script>let s=1;const show=()=>{document.querySelectorAll('section').forEach(x=>x.hidden=+x.dataset.s!==s);prog.textContent='Step '+s+' of 4';nx.hidden=s===4;sb.hidden=s!==4}
+nx.onclick=()=>{const bad=[...document.querySelector('section[data-s="'+s+'"]').querySelectorAll('[required]')].filter(i=>!i.value);if(bad.length){bad.forEach(i=>i.setAttribute('aria-invalid','true'));return}s++;show()}
+window.__expect={all:()=>fn.value&&ln.value&&em.value&&ph.value&&hear.value==='Company website'&&no.value,last:()=>s===4}</script><script>window.__check=()=>{const missing=[];for(const [n,ok] of Object.entries(window.__expect||{})){if(!ok())missing.push(n)}return{ok:!missing.length,missing}}</script></body></html>

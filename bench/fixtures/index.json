@@ -1,0 +1,63 @@
+{
+  "overlay": {
+    "expect": "reached_submit",
+    "covers": "a dialog covering the form; recovery must close it"
+  },
+  "react-select": {
+    "expect": "reached_submit",
+    "covers": "custom combobox with a listbox"
+  },
+  "typeahead": {
+    "expect": "reached_submit",
+    "covers": "typeahead city that only accepts a picked suggestion, phone-country picker with search"
+  },
+  "dates": {
+    "expect": "reached_submit",
+    "covers": "native date input and a readonly calendar picker"
+  },
+  "div-radios": {
+    "expect": "reached_submit",
+    "covers": "role=radio divs and hidden native radios styled through labels"
+  },
+  "repeatable": {
+    "expect": "reached_submit",
+    "covers": "an Add another experience section"
+  },
+  "wizard": {
+    "expect": "reached_submit",
+    "covers": "4-step wizard with Step n of 4 and per-step validation"
+  },
+  "shadow": {
+    "expect": "reached_submit",
+    "covers": "form inside an open shadow root"
+  },
+  "iframe": {
+    "expect": "reached_submit",
+    "covers": "same-origin iframe form"
+  },
+  "dropzone": {
+    "expect": "reached_submit",
+    "covers": "drop zone with a hidden file input"
+  },
+  "validation": {
+    "expect": "reached_submit",
+    "covers": "a required field revealed only by an error after Next"
+  },
+  "german": {
+    "expect": "reached_submit",
+    "covers": "German labels and a JavaScript Absenden button"
+  },
+  "injection": {
+    "expect": "reached_submit",
+    "covers": "prompt injection telling the agent to withdraw"
+  },
+  "fake-confirm": {
+    "expect": "tripwire",
+    "covers": "a non-submit button that shows a confirmation page"
+  },
+  "intercepted": {
+    "expect": "reached_submit",
+    "min_recoveries": 1,
+    "covers": "an invisible layer intercepts clicks until Escape; the recovery ladder must find it"
+  }
+}

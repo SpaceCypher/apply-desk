@@ -1,0 +1,42 @@
+name: Migrate database
+# Applies db/*.sql to production Neon (idempotent; applied files are tracked in schema_migrations).
+on:
+  push:
+    branches: [main]
+    paths: ['db/**']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency: migrate
+jobs:
+  configuration:
+    runs-on: ubuntu-latest
+    outputs:
+      ready: ${{ steps.database.outputs.ready }}
+    steps:
+      - name: Check database configuration
+        id: database
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          if [ -z "$DATABASE_URL" ]; then
+            echo "::notice::DATABASE_URL is not set. Skipping database jobs; run npm run setup and configure GitHub Secrets."
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          fi
+
+  migrate:
+    needs: configuration
+    if: needs.configuration.outputs.ready == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install --no-save --ignore-scripts pg@8
+      - run: node scripts/migrate.mjs
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}

@@ -1,0 +1,99 @@
+name: Scoreboard
+# Scores a form-filling engine on the scored postings (scoreboard_postings, not spare) in dry run, against your answer
+# keys. Nothing is ever submitted: dry run blocks every write except a résumé upload to known ATS storage, and the
+# form's own submit is blocked. Each job has its own Postgres for the dry-run jobs, so your queue is never touched;
+# only scoreboard_runs rows are written to your database. Results are in each job's summary.
+on:
+  workflow_dispatch:
+    inputs:
+      engine:
+        description: "Engine to score (agent; stagehand and openclaw come later)"
+        required: true
+        default: agent
+      platform:
+        description: "all, or one of greenhouse, ashby, lever, workday"
+        required: true
+        default: all
+      runs:
+        description: "Runs per posting"
+        required: true
+        default: "2"
+permissions:
+  contents: read
+concurrency:
+  group: scoreboard
+  cancel-in-progress: false
+env:
+  SOURCE_DATABASE_URL: ${{ secrets.DATABASE_URL }}
+  DATABASE_URL: postgres://postgres:scoreboard@localhost:5432/scoreboard
+  GOOGLE_CLOUD_PROJECT: ${{ secrets.GOOGLE_CLOUD_PROJECT }}
+  GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+  GOOGLE_CLOUD_LOCATION: ${{ secrets.GOOGLE_CLOUD_LOCATION || 'global' }}
+  GEMINI_MODEL: ${{ secrets.GEMINI_MODEL || 'gemini-3.5-flash' }}
+  GEMINI_STRONG_MODEL: ${{ secrets.GEMINI_STRONG_MODEL || 'gemini-3.1-pro-preview' }}
+  GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
+jobs:
+  configuration:
+    runs-on: ubuntu-latest
+    outputs:
+      ready: ${{ steps.database.outputs.ready }}
+    steps:
+      - name: Check database configuration
+        id: database
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          if [ -z "$DATABASE_URL" ]; then
+            echo "::notice::DATABASE_URL is not set. Skipping database jobs; run npm run setup and configure GitHub Secrets."
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          fi
+
+  score:
+    needs: configuration
+    if: needs.configuration.outputs.ready == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    strategy:
+      fail-fast: false
+      matrix:
+        platform: [greenhouse, ashby, lever, workday]
+    services:
+      postgres:
+        image: postgres:16
+        env: { POSTGRES_PASSWORD: scoreboard, POSTGRES_DB: scoreboard }
+        ports: ["5432:5432"]
+        options: --health-cmd pg_isready --health-interval 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+        if: ${{ !inputs.platform || inputs.platform == 'all' || inputs.platform == matrix.platform }}
+      - uses: actions/setup-node@v4
+        if: ${{ !inputs.platform || inputs.platform == 'all' || inputs.platform == matrix.platform }}
+        with:
+          node-version: 22
+      - id: modules
+        if: ${{ !inputs.platform || inputs.platform == 'all' || inputs.platform == matrix.platform }}
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: node-modules-${{ runner.os }}-node22-${{ hashFiles('package-lock.json') }}
+      - if: ${{ (!inputs.platform || inputs.platform == 'all' || inputs.platform == matrix.platform) && steps.modules.outputs.cache-hit != 'true' }}
+        run: npm ci
+      - name: Score ${{ matrix.platform }}
+        if: ${{ !inputs.platform || inputs.platform == 'all' || inputs.platform == matrix.platform }}
+        # Headed under a virtual display, like the worker. Google Chrome is preinstalled on the runner.
+        env: { BENCH_HEADED: "1", DISPLAY: ":99" }
+        run: |
+          command -v Xvfb >/dev/null || { sudo apt-get update -qq && sudo apt-get install -y -qq --no-install-recommends xvfb; }
+          Xvfb :99 -screen 0 1440x900x24 &
+          node scripts/migrate.mjs
+          node scoreboard/run.mjs --engine "${{ inputs.engine || 'agent' }}" --platform "${{ matrix.platform }}" --runs "${{ inputs.runs || '2' }}"
+      # Evidence for any run that was not fully correct: the page as scored and its question labels (no values).
+      - uses: actions/upload-artifact@v4
+        if: ${{ always() && (!inputs.platform || inputs.platform == 'all' || inputs.platform == matrix.platform) }}
+        with:
+          name: scoreboard-${{ inputs.engine || 'agent' }}-${{ matrix.platform }}
+          path: scoreboard-out/
+          if-no-files-found: ignore
+          retention-days: 3

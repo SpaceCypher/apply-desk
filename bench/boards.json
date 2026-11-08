@@ -1,0 +1,21 @@
+{
+  "_comment": "expect = furthest stage a dry run should reach. Account-walled boards are scored on reaching the wall (no accounts are created). discover: how refresh.mjs finds an open posting.",
+  "greenhouse": { "expect": "reached_submit", "discover": { "api": "greenhouse", "boards": ["airbnb", "discord", "figma", "databricks"] } },
+  "lever": { "expect": "reached_submit", "discover": { "api": "lever", "boards": ["palantir", "spotify", "netflix", "attentive", "mistral"] } },
+  "ashby": { "expect": "reached_submit", "discover": { "api": "ashby", "boards": ["ramp", "notion", "linear", "openai", "vercel"] } },
+  "smartrecruiters": { "expect": "reached_submit", "discover": { "api": "smartrecruiters", "boards": ["Visa", "Bosch", "IKEA", "Ubisoft2"] } },
+  "workday": { "expect": "account_wall", "discover": { "api": "workday", "sites": [["nvidia", "wd5", "NVIDIAExternalCareerSite"], ["salesforce", "wd12", "External_Career_Site"]] } },
+  "icims": { "expect": "account_wall", "discover": { "seeds": [] } },
+  "taleo": { "expect": "account_wall", "discover": { "seeds": [] } },
+  "successfactors": { "expect": "account_wall", "discover": { "seeds": [] } },
+  "workable": { "expect": "reached_submit", "discover": { "api": "workable", "boards": ["workable", "hotjar", "toggl"] } },
+  "bamboohr": { "expect": "reached_submit", "discover": { "api": "bamboohr", "boards": ["bamboohr"] } },
+  "google_forms": { "expect": "reached_submit", "discover": { "seeds": [] } },
+  "typeform": { "expect": "reached_submit", "discover": { "seeds": [] } },
+  "darwinbox": { "expect": "reached_submit", "discover": { "seeds": [] } },
+  "zoho_recruit": { "expect": "reached_submit", "discover": { "seeds": [] } },
+  "naukri": { "expect": "account_wall", "handoff": true, "discover": { "seeds": ["https://www.naukri.com/software-developer-jobs"] } },
+  "wellfound": { "expect": "account_wall", "handoff": true, "discover": { "seeds": ["https://wellfound.com/jobs"] } },
+  "custom_1": { "expect": "reached_submit", "discover": { "seeds": [] } },
+  "custom_2": { "expect": "reached_submit", "discover": { "seeds": [] } }
+}

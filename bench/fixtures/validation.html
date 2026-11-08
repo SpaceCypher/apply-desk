@@ -1,0 +1,7 @@
+<!doctype html><html><head><meta charset="utf-8"><style>body{font:15px sans-serif;max-width:640px;margin:24px auto}label{display:block;margin:12px 0 4px}input,select,textarea{width:100%;padding:6px;font:inherit}button{margin-top:16px;padding:8px 14px;font:inherit}</style></head><body><h1>Apply</h1><form action="/submit" method="post" novalidate>
+<label for="fn">First name</label><input id="fn">
+<label for="yo">Years of experience</label><input id="yo"><p id="yoe" role="alert" hidden>Years of experience is required.</p>
+<button type="button" id="nx">Next</button>
+<div id="p2" hidden><label for="em">Email *</label><input id="em" type="email" required><button id="submit" type="submit">Submit application</button></form></div>
+<script>nx.onclick=()=>{if(!yo.value){yoe.hidden=false;yo.setAttribute('aria-invalid','true');yo.setAttribute('aria-describedby','yoe');return}yoe.hidden=true;p2.hidden=false;nx.hidden=true}
+window.__expect={years:()=>yo.value==='1',email:()=>em.value.includes('@')}</script><script>window.__check=()=>{const missing=[];for(const [n,ok] of Object.entries(window.__expect||{})){if(!ok())missing.push(n)}return{ok:!missing.length,missing}}</script></body></html>

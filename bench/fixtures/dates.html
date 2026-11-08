@@ -1,0 +1,12 @@
+<!doctype html><html><head><meta charset="utf-8"><style>body{font:15px sans-serif;max-width:640px;margin:24px auto}label{display:block;margin:12px 0 4px}input,select,textarea{width:100%;padding:6px;font:inherit}button{margin-top:16px;padding:8px 14px;font:inherit}</style></head><body><h1>Apply</h1><form action="/submit" method="post">
+<label for="fn">First name *</label><input id="fn" required>
+<label for="dob">Date of birth *</label><input id="dob" type="date" required>
+<label for="start">Available start date *</label><input id="start" readonly placeholder="Pick a date" required>
+<div id="cal" hidden role="dialog" aria-label="Calendar"><button type="button" aria-label="Previous month" id="prev">‹</button><span id="cap" aria-live="polite"></span><button type="button" aria-label="Next month" id="next">›</button><div id="grid" role="grid"></div></div>
+<button id="submit" type="submit">Submit application</button></form>
+<script>
+let y=2026,m=0;const M=['January','February','March','April','May','June','July','August','September','October','November','December']
+const draw=()=>{cap.textContent=M[m]+' '+y;grid.innerHTML='';const n=new Date(y,m+1,0).getDate();for(let d=1;d<=n;d++){const b=document.createElement('button');b.type='button';b.textContent=d;b.setAttribute('aria-label',M[m]+' '+d+', '+y);b.onclick=()=>{start.value=String(m+1).padStart(2,'0')+'/'+String(d).padStart(2,'0')+'/'+y;cal.hidden=true};grid.appendChild(b)}}
+start.onclick=()=>{cal.hidden=false;draw()};prev.onclick=()=>{m--;if(m<0){m=11;y--}draw()};next.onclick=()=>{m++;if(m>11){m=0;y++}draw()}
+window.__expect={dob:()=>dob.value==='2003-04-12',start:()=>start.value==='07/01/2026'}
+</script><script>window.__check=()=>{const missing=[];for(const [n,ok] of Object.entries(window.__expect||{})){if(!ok())missing.push(n)}return{ok:!missing.length,missing}}</script></body></html>

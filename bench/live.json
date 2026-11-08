@@ -1,0 +1,46 @@
+[
+  {
+    "board": "greenhouse",
+    "url": "https://job-boards.greenhouse.io/airbnb/jobs/8231416",
+    "expect": "reached_submit",
+    "handoff": false
+  },
+  {
+    "board": "lever",
+    "url": "https://jobs.lever.co/palantir/45241c61-11af-45b5-86a0-a5302c028d6d/apply",
+    "expect": "reached_submit",
+    "handoff": false
+  },
+  {
+    "board": "ashby",
+    "url": "https://jobs.ashbyhq.com/notion/f603aedb-1454-4a75-b2f0-a3afb2a8f973/application",
+    "expect": "reached_submit",
+    "handoff": false
+  },
+  {
+    "board": "smartrecruiters",
+    "url": "https://jobs.smartrecruiters.com/Ubisoft2/744000158795589",
+    "expect": "reached_submit",
+    "handoff": false
+  },
+  {
+    "board": "workday",
+    "url": "https://salesforce.wd12.myworkdayjobs.com/en-US/External_Career_Site/job/Japan---Tokyo/Senior-Engagement-Manager--Financial-Services_JR357009",
+    "expect": "account_wall",
+    "handoff": false
+  },
+  {
+    "board": "workable",
+    "url": null,
+    "expect": "reached_submit",
+    "handoff": false,
+    "skipped": "429 https://apply.workable.com/api/v3/accounts/workable/jobs"
+  },
+  {
+    "board": "bamboohr",
+    "url": null,
+    "expect": "reached_submit",
+    "handoff": false,
+    "skipped": "Unexpected token '<', \"<!DOCTYPE \"... is not valid JSON"
+  }
+]

@@ -1,0 +1,81 @@
+{
+  "first_name": "Aarav",
+  "last_name": "Mehta",
+  "email": "aarav.mehta.bench@example.com",
+  "phone": "+91 20255 50143",
+  "location": "Pune, India",
+  "linkedin": "https://www.linkedin.com/in/aarav-mehta-bench",
+  "github": "https://github.com/aarav-bench",
+  "portfolio": "",
+  "education": [
+    {
+      "school": "Example Institute of Technology",
+      "degree": "B.Tech, Computer Science",
+      "start": "2022",
+      "end": "2026",
+      "gpa": "8.4"
+    }
+  ],
+  "experiences": [
+    {
+      "id": "exp1",
+      "company": "Northwind Labs",
+      "title": "Software Intern",
+      "start": "2025-05",
+      "end": "2025-07",
+      "bullets": [
+        "Built an internal dashboard in React"
+      ]
+    },
+    {
+      "id": "exp2",
+      "company": "Contoso Analytics",
+      "title": "Data Intern",
+      "start": "2024-06",
+      "end": "2024-08",
+      "bullets": [
+        "Cleaned survey data with Python"
+      ]
+    }
+  ],
+  "projects": [
+    {
+      "id": "p1",
+      "name": "Bench Bot",
+      "short": "Test persona project",
+      "tech": [
+        "Node.js"
+      ]
+    }
+  ],
+  "skills": [
+    {
+      "name": "JavaScript",
+      "level": "advanced"
+    },
+    {
+      "name": "Python",
+      "level": "intermediate"
+    }
+  ],
+  "preferences": {
+    "roles": "Software engineer",
+    "locations": "Pune, Bengaluru",
+    "remote": "Hybrid",
+    "relocation": "Yes",
+    "salary": "",
+    "notice_period": "Immediately"
+  },
+  "sensitive": {
+    "gender": {
+      "value": "Prefer not to say",
+      "mode": "answer"
+    },
+    "birth_date": {
+      "value": "2003-04-12",
+      "mode": "answer"
+    }
+  },
+  "birth_date": "2003-04-12",
+  "stealth_rule": "Say I am a full-time student."
+}

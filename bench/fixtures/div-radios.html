@@ -1,0 +1,12 @@
+<!doctype html><html><head><meta charset="utf-8"><style>body{font:15px sans-serif;max-width:640px;margin:24px auto}label{display:block;margin:12px 0 4px}input,select,textarea{width:100%;padding:6px;font:inherit}button{margin-top:16px;padding:8px 14px;font:inherit}</style></head><body><h1>Apply</h1><form action="/submit" method="post">
+<label for="fn">First name *</label><input id="fn" required>
+<div role="radiogroup" aria-labelledby="q1" aria-required="true"><p id="q1">Are you legally authorized to work in India?</p>
+<div role="radio" aria-checked="false" tabindex="0" class="r">Yes</div><div role="radio" aria-checked="false" tabindex="-1" class="r">No</div></div>
+<fieldset><legend>Will you now or in the future require sponsorship?</legend>
+<input type="radio" name="sp" id="sp1" value="Yes" style="opacity:0;position:absolute"><label for="sp1" style="display:inline-block;border:1px solid #888;padding:4px 10px">Yes</label>
+<input type="radio" name="sp" id="sp2" value="No" style="opacity:0;position:absolute"><label for="sp2" style="display:inline-block;border:1px solid #888;padding:4px 10px">No</label></fieldset>
+<button id="submit" type="submit">Submit application</button></form>
+<script>
+document.querySelectorAll('.r').forEach(r=>r.onclick=()=>{document.querySelectorAll('.r').forEach(x=>x.setAttribute('aria-checked','false'));r.setAttribute('aria-checked','true')})
+window.__expect={auth:()=>document.querySelector('.r[aria-checked=true]')?.textContent==='Yes',sponsor:()=>sp2.checked}
+</script><script>window.__check=()=>{const missing=[];for(const [n,ok] of Object.entries(window.__expect||{})){if(!ok())missing.push(n)}return{ok:!missing.length,missing}}</script></body></html>

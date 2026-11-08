@@ -1,0 +1,43 @@
+{
+  "name": "cloud",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "typecheck": "next typegen >/dev/null 2>&1; tsc --noEmit",
+    "test": "node --test --test-concurrency=1 worker/*.test.mjs worker/lib/*.test.mjs bench/*.test.mjs scoreboard/*.test.mjs scripts/*.test.mjs",
+    "migrate": "node scripts/migrate.mjs",
+    "worker": "node worker/run.mjs",
+    "bench": "node bench/run.mjs --fixtures",
+    "bench:live": "node bench/refresh.mjs && node bench/run.mjs --live",
+    "setup": "node scripts/setup.mjs"
+  },
+  "dependencies": {
+    "@browserbasehq/stagehand": "^4.4.0",
+    "@google/genai": "^2.32.0",
+    "aws4fetch": "^1.0.20",
+    "imapflow": "^2.10.0",
+    "ipaddr.js": "^2.5.0",
+    "lucide-react": "^1.68.0",
+    "mailparser": "^3.14.1",
+    "next": "16.4.4",
+    "next-auth": "^5.0.0-beta.32",
+    "pg": "^8.23.1",
+    "playwright": "^1.64.1",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "zod": "^4.6.6"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/pg": "^8.23.1",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.4.4",
+    "typescript": "^5"
+  }
+}

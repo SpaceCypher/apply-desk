@@ -1,0 +1,46 @@
+name: CI
+on:
+  push:
+  pull_request:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+        env:
+          AUTH_SECRET: ci
+  latex:
+    # Same TeX Live packages as apply.yml, so resume templates are proven to compile before a real run needs them.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      # Same cached package set as apply.yml, so this proves a cache restore still compiles.
+      - uses: awalsh128/cache-apt-pkgs-action@553a35bb8ebd9fcabcb1c9451aa4c98e1b4ca8a9 # v1.6.3
+        with:
+          packages: xvfb x11vnc novnc websockify texlive-latex-extra texlive-fonts-recommended
+          version: v2
+      # Package scripts are skipped on restore; only TeX Live's generated files are rebuilt (file index, pdflatex format, font map).
+      # Safety net: the cache action can save an empty cache when its own install fails (seen after an Ubuntu
+      # package update). If the tools are missing, install them directly; it only costs time, never the job.
+      - run: |
+          if ! command -v pdflatex >/dev/null || ! command -v Xvfb >/dev/null || ! command -v mktexlsr >/dev/null; then
+            echo "apt cache incomplete; installing directly"
+            sudo apt-get update -qq
+            sudo apt-get install -y -qq --no-install-recommends xvfb x11vnc novnc websockify texlive-latex-extra texlive-fonts-recommended
+          fi
+          sudo mktexlsr >/dev/null && sudo fmtutil-sys --byfmt pdflatex >/dev/null && sudo updmap-sys >/dev/null
+      - run: node --test worker/lib/latex.compile.test.mjs

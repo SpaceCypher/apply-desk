@@ -1,0 +1,91 @@
+name: Apply worker
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+# One worker at a time. The worker drains the whole queue, so a second dispatch only needs to wait.
+concurrency:
+  group: apply-worker
+  cancel-in-progress: false
+jobs:
+  configuration:
+    runs-on: ubuntu-latest
+    outputs:
+      ready: ${{ steps.database.outputs.ready }}
+    steps:
+      - name: Check database configuration
+        id: database
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          if [ -z "$DATABASE_URL" ]; then
+            echo "::notice::DATABASE_URL is not set. Skipping database jobs; run npm run setup and configure GitHub Secrets."
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          fi
+
+  apply:
+    needs: configuration
+    if: needs.configuration.outputs.ready == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      # node_modules restored whole when the lockfile is unchanged, so npm ci only runs after dependency changes.
+      - id: modules
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: node-modules-${{ runner.os }}-node22-${{ hashFiles('package-lock.json') }}
+      - if: steps.modules.outputs.cache-hit != 'true'
+        run: npm ci
+      # Virtual display, CAPTCHA handoff tools and pdfLaTeX, restored from cache. Same list as ci.yml's latex job, which proves it compiles.
+      # Google Chrome is preinstalled on the runner (Playwright uses channel "chrome").
+      - uses: awalsh128/cache-apt-pkgs-action@553a35bb8ebd9fcabcb1c9451aa4c98e1b4ca8a9 # v1.6.3
+        with:
+          packages: xvfb x11vnc novnc websockify texlive-latex-extra texlive-fonts-recommended
+          version: v2
+      # Package scripts are skipped on restore; only TeX Live's generated files are rebuilt (file index, pdflatex format, font map).
+      # Safety net: the cache action can save an empty cache when its own install fails (seen after an Ubuntu
+      # package update). If the tools are missing, install them directly; it only costs time, never the job.
+      - run: |
+          if ! command -v pdflatex >/dev/null || ! command -v Xvfb >/dev/null || ! command -v mktexlsr >/dev/null; then
+            echo "apt cache incomplete; installing directly"
+            sudo apt-get update -qq
+            sudo apt-get install -y -qq --no-install-recommends xvfb x11vnc novnc websockify texlive-latex-extra texlive-fonts-recommended
+          fi
+          sudo mktexlsr >/dev/null && sudo fmtutil-sys --byfmt pdflatex >/dev/null && sudo updmap-sys >/dev/null
+      - name: Cloudflare tunnel for CAPTCHA handoff
+        run: |
+          curl -fsSL https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb -o /tmp/cloudflared.deb
+          sudo dpkg -i /tmp/cloudflared.deb
+      - name: Run one queued job
+        env:
+          DISPLAY: ":99"
+          HANDOFF: "1"
+          # Wait up to 10 minutes for an answer before parking; a quick reply then continues in the same browser.
+          ASK_WAIT_SECONDS: "600"
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          VAULT_KEY: ${{ secrets.VAULT_KEY }}
+          GOOGLE_CLOUD_PROJECT: ${{ secrets.GOOGLE_CLOUD_PROJECT }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GOOGLE_CLOUD_LOCATION: ${{ secrets.GOOGLE_CLOUD_LOCATION || 'global' }}
+          GEMINI_MODEL: ${{ secrets.GEMINI_MODEL || 'gemini-3.5-flash' }}
+          GEMINI_STRONG_MODEL: ${{ secrets.GEMINI_STRONG_MODEL || 'gemini-3.1-pro-preview' }}
+          GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          JOB_GMAIL_ADDRESS: ${{ secrets.JOB_GMAIL_ADDRESS }}
+          JOB_GMAIL_APP_PASSWORD: ${{ secrets.JOB_GMAIL_APP_PASSWORD }}
+          R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_BUCKET: ${{ secrets.R2_BUCKET }}
+        run: |
+          Xvfb :99 -screen 0 1440x900x24 &
+          sleep 2
+          node worker/run.mjs

@@ -1,0 +1,14 @@
+[
+  { "question": "Are you legally authorized to work in India?", "answer": "Yes" },
+  { "question": "Will you now or in the future require sponsorship?", "answer": "No" },
+  { "question": "How did you hear about us?", "answer": "Company website" },
+  { "question": "Notice period", "answer": "Immediately" },
+  { "question": "Years of experience", "answer": "1" },
+  { "question": "Why do you want to work here?", "answer": "I like the product and the engineering culture." },
+  { "question": "Expected salary", "answer": "Open to discuss" },
+  { "question": "Available start date", "answer": "2026-07-01" },
+  { "question": "Country", "answer": "India" },
+  { "question": "Country code", "answer": "India (+91)" },
+  { "question": "City", "answer": "Pune" },
+  { "question": "Gender", "answer": "Prefer not to say" }
+]

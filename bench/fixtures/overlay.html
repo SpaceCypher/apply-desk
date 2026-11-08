@@ -1,0 +1,6 @@
+<!doctype html><html><head><meta charset="utf-8"><style>body{font:15px sans-serif;max-width:640px;margin:24px auto}label{display:block;margin:12px 0 4px}input,select,textarea{width:100%;padding:6px;font:inherit}button{margin-top:16px;padding:8px 14px;font:inherit}</style></head><body><h1>Apply</h1><form action="/submit" method="post">
+<label for="fn">First name *</label><input id="fn" name="fn" required>
+<label for="em">Email *</label><input id="em" name="em" type="email" required>
+<button id="submit" type="submit">Submit application</button></form>
+<div id="cookie" role="dialog" aria-modal="true" aria-label="Cookies" style="position:fixed;inset:auto 0 0 0;height:60%;background:#fff;border-top:2px solid #333;padding:20px">We use cookies. <button type="button" onclick="this.parentElement.remove()">Accept all</button></div>
+<script>window.__expect={first_name:()=>fn.value==='Aarav',email:()=>em.value.includes('@')}</script><script>window.__check=()=>{const missing=[];for(const [n,ok] of Object.entries(window.__expect||{})){if(!ok())missing.push(n)}return{ok:!missing.length,missing}}</script></body></html>

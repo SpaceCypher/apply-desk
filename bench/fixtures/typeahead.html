@@ -1,0 +1,20 @@
+<!doctype html><html><head><meta charset="utf-8"><style>body{font:15px sans-serif;max-width:640px;margin:24px auto}label{display:block;margin:12px 0 4px}input,select,textarea{width:100%;padding:6px;font:inherit}button{margin-top:16px;padding:8px 14px;font:inherit}</style></head><body><h1>Apply</h1><form action="/submit" method="post">
+<label for="fn">First name *</label><input id="fn" required>
+<label for="city">City *</label><input id="city" role="combobox" aria-autocomplete="list" required autocomplete="off">
+<ul id="sug" role="listbox" style="list-style:none;margin:0;padding:0"></ul>
+<label id="cc">Country code *</label><button type="button" id="ccb" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="cc">Select</button>
+<div id="ccp" hidden><input id="ccs" aria-label="Search country"><ul id="ccl" role="listbox"></ul></div>
+<label for="ph">Phone *</label><input id="ph" type="tel" required>
+<button id="submit" type="submit">Submit application</button></form>
+<script>
+const CITIES=['Pune','Punjab','Puducherry','Patna'];let chosen='';
+city.oninput=()=>{chosen='';const v=city.value.toLowerCase();sug.innerHTML=v.length<2?'':CITIES.filter(c=>c.toLowerCase().startsWith(v)).map(c=>'<li role="option">'+c+'</li>').join('')}
+sug.onclick=e=>{if(e.target.getAttribute('role')==='option'){city.value=chosen=e.target.textContent;sug.innerHTML=''}}
+const CC=['India (+91)','Indonesia (+62)','Ireland (+353)'];
+const draw=()=>{ccl.innerHTML=CC.filter(c=>c.toLowerCase().includes(ccs.value.toLowerCase())).map(c=>'<li role="option">'+c+'</li>').join('')}
+ccb.onclick=()=>{ccp.hidden=!ccp.hidden;ccb.setAttribute('aria-expanded',!ccp.hidden);draw();ccs.focus()}
+ccs.oninput=draw
+addEventListener('keydown',e=>{if(!ccp.hidden&&e.target!==ccs&&e.key.length===1){ccs.value+=e.key;draw()}})
+ccl.onclick=e=>{if(e.target.getAttribute('role')==='option'){ccb.textContent=e.target.textContent;ccp.hidden=true;ccb.setAttribute('aria-expanded','false')}}
+window.__expect={city_chosen:()=>chosen==='Pune',code:()=>ccb.textContent==='India (+91)',phone:()=>ph.value.replace(/\D/g,'').endsWith('2025550143')}
+</script><script>window.__check=()=>{const missing=[];for(const [n,ok] of Object.entries(window.__expect||{})){if(!ok())missing.push(n)}return{ok:!missing.length,missing}}</script></body></html>

@@ -1,0 +1,15 @@
+<!doctype html><html><head><meta charset="utf-8"><style>body{font:15px sans-serif;max-width:640px;margin:24px auto}label{display:block;margin:12px 0 4px}input,select,textarea{width:100%;padding:6px;font:inherit}button{margin-top:16px;padding:8px 14px;font:inherit}</style></head><body><h1>Apply</h1><form action="/submit" method="post">
+<label for="fn">First name *</label><input id="fn" required>
+<label for="ln">Last name *</label><input id="ln" required>
+<label id="cl">Country *</label>
+<div id="country" role="combobox" tabindex="0" aria-labelledby="cl" aria-expanded="false" aria-required="true" aria-controls="lb" style="border:1px solid #888;padding:6px;cursor:pointer">Select...</div>
+<ul id="lb" role="listbox" hidden style="border:1px solid #888;margin:0;padding:0;list-style:none"></ul>
+<button id="submit" type="submit">Submit application</button></form>
+<script>
+const C=['Germany','India','Indonesia','Ireland','United States'];let open=false,typed='';
+const render=()=>{lb.innerHTML=C.filter(c=>c.toLowerCase().startsWith(typed)).map(c=>'<li role="option" style="padding:4px">'+c+'</li>').join('')}
+country.onclick=()=>{open=!open;typed='';render();lb.hidden=!open;country.setAttribute('aria-expanded',open)}
+addEventListener('keydown',e=>{if(open&&e.key.length===1){typed+=e.key.toLowerCase();render()}if(open&&e.key==='Enter'){const f=lb.querySelector('[role=option]');if(f)f.click();e.preventDefault()}})
+lb.onclick=e=>{if(e.target.getAttribute('role')==='option'){country.textContent=e.target.textContent;open=false;lb.hidden=true;country.setAttribute('aria-expanded','false')}}
+window.__expect={country:()=>country.textContent==='India',first:()=>fn.value==='Aarav'}
+</script><script>window.__check=()=>{const missing=[];for(const [n,ok] of Object.entries(window.__expect||{})){if(!ok())missing.push(n)}return{ok:!missing.length,missing}}</script></body></html>

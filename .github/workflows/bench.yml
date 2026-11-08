@@ -1,0 +1,119 @@
+name: Bench
+# Measures the agent in dry run: local hard-case fixtures plus one fresh posting per live board.
+# Each job has its own Postgres service, so the bench never touches your queue. Results go to bench_runs in
+# BENCH_RESULTS_URL (your Neon database; run `npm run migrate` there once for db/003_bench.sql).
+on:
+  schedule:
+    - cron: "41 20 * * *"   # nightly, 02:11 IST
+  workflow_dispatch:
+    inputs:
+      only:
+        description: "Comma-separated boards or fixtures (blank = all)"
+        required: false
+      planner:
+        description: "gemini (real model) or scripted (no model calls)"
+        required: false
+        default: gemini
+permissions:
+  contents: read
+concurrency:
+  group: bench
+  cancel-in-progress: false
+env:
+  BENCH_RESULTS_URL: ${{ secrets.DATABASE_URL }}
+  GOOGLE_CLOUD_PROJECT: ${{ secrets.GOOGLE_CLOUD_PROJECT }}
+  GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+  GOOGLE_CLOUD_LOCATION: ${{ secrets.GOOGLE_CLOUD_LOCATION || 'global' }}
+  GEMINI_MODEL: ${{ secrets.GEMINI_MODEL || 'gemini-3.5-flash' }}
+  GEMINI_STRONG_MODEL: ${{ secrets.GEMINI_STRONG_MODEL || 'gemini-3.1-pro-preview' }}
+  GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
+  R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
+  R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+  R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+  R2_BUCKET: ${{ secrets.R2_BUCKET }}
+  DATABASE_URL: postgres://postgres:bench@localhost:5432/bench
+jobs:
+  configuration:
+    runs-on: ubuntu-latest
+    outputs:
+      ready: ${{ steps.database.outputs.ready }}
+    steps:
+      - name: Check database configuration
+        id: database
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          if [ -z "$DATABASE_URL" ]; then
+            echo "::notice::DATABASE_URL is not set. Skipping database jobs; run npm run setup and configure GitHub Secrets."
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          fi
+
+  fixtures:
+    needs: configuration
+    if: needs.configuration.outputs.ready == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    services:
+      postgres:
+        image: postgres:16
+        env: { POSTGRES_PASSWORD: bench, POSTGRES_DB: bench }
+        ports: ["5432:5432"]
+        options: --health-cmd pg_isready --health-interval 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - run: npm ci
+      - run: npx playwright install --with-deps chrome
+      - run: node scripts/migrate.mjs
+      - run: node bench/run.mjs --fixtures --planner "${{ inputs.planner || 'gemini' }}" ${{ inputs.only && format('--only {0}', inputs.only) || '' }}
+
+  live:
+    needs: configuration
+    if: needs.configuration.outputs.ready == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      max-parallel: 4
+      matrix:
+        board: [greenhouse, lever, ashby, smartrecruiters, workday, workable, bamboohr, icims, taleo, successfactors, google_forms, typeform, darwinbox, zoho_recruit, naukri, wellfound, custom_1, custom_2]
+    services:
+      postgres:
+        image: postgres:16
+        env: { POSTGRES_PASSWORD: bench, POSTGRES_DB: bench }
+        ports: ["5432:5432"]
+        options: --health-cmd pg_isready --health-interval 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+        if: ${{ !inputs.only || contains(inputs.only, matrix.board) }}
+      - uses: actions/setup-node@v4
+        if: ${{ !inputs.only || contains(inputs.only, matrix.board) }}
+        with: { node-version: 22, cache: npm }
+      - name: Run ${{ matrix.board }}
+        if: ${{ !inputs.only || contains(inputs.only, matrix.board) }}
+        env: { BENCH_HEADED: "1", DISPLAY: ":99" }
+        run: |
+          npm ci
+          npx playwright install --with-deps chrome
+          sudo apt-get install -y -qq xvfb
+          Xvfb :99 -screen 0 1440x900x24 &
+          node scripts/migrate.mjs
+          node bench/refresh.mjs --only ${{ matrix.board }}
+          node bench/run.mjs --live --only ${{ matrix.board }} --planner "${{ inputs.planner || 'gemini' }}"
+
+  summary:
+    needs: [configuration, fixtures, live]
+    if: ${{ always() && needs.configuration.outputs.ready == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - run: npm ci
+      - run: node bench/notify.mjs
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
